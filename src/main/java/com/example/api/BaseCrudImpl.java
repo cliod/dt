@@ -5,7 +5,6 @@ import com.example.domain.Pageable;
 import com.example.utils.SqlUtils;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;

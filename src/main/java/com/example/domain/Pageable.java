@@ -1,14 +1,21 @@
 package com.example.domain;
 
+import lombok.Data;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * 分页参数
  *
  * @author cliod
  * @since 8/18/20 3:05 PM
  */
-public class Pageable extends com.wobangkj.bean.Pageable {
+@Data
+public class Pageable {
 	private String order;
+	private Integer page;
+	private Integer size;
 
+	@NotNull
 	public static Pageable of(String order, final int page, final int size) {
 		Pageable pageable = new Pageable();
 		pageable.setOrder(order);
@@ -17,18 +24,11 @@ public class Pageable extends com.wobangkj.bean.Pageable {
 		return pageable;
 	}
 
-	public static Pageable of(com.wobangkj.bean.Pageable pageable) {
-		Pageable pageable0 = new Pageable();
-		pageable0.setPage(pageable.getPage());
-		pageable0.setSize(pageable0.getSize());
-		return pageable0;
+	public Integer getOffset() {
+		return size * (page - 1);
 	}
 
-	public String getOrder() {
-		return order;
-	}
-
-	public void setOrder(String order) {
-		this.order = order;
+	public Integer getLimit() {
+		return size;
 	}
 }

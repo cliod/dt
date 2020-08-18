@@ -34,7 +34,7 @@ public class SqlUtils {
 		StringBuilder baseSql = new StringBuilder(String.format("update %s  %s", tableName, getWhere("set", wheres)));
 		Field field = primaryKey.getField();
 		field.setAccessible(true);
-		Object obj = field.get(primaryKey.getFieldType());
+		Object obj = field.get(primaryKey.getFieldName());
 		baseSql.append(" where ").append(primaryKey.getColumnName()).append("=").append(obj);
 		return baseSql.toString();
 	}
