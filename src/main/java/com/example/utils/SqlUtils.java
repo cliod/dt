@@ -23,23 +23,33 @@ public class SqlUtils {
 	}
 
 	public static String getBaseUpdateSql(ModelInfo<?> model) throws IllegalAccessException {
-		return getBaseUpdate(model.getPrimaryKeyInfo(), model.getTableName(), getWheres(model));
+		return getBaseUpdate(model.getModel(), model.getPrimaryKeyInfo(), model.getTableName(), getWheres(model));
+	}
+
+	public static String getBaseInsertSql(ModelInfo<?> info) {
+		//TODO
+		return null;
+	}
+
+	public static String getBaseDeleteSql(ModelInfo<?> info) {
+		//TODO
+		return null;
 	}
 
 	public static String getBaseSelect(String col, String table, String... wheres) {
-		return String.format("select %s from %s %s", col, table, getWhere("where", wheres));
+		return String.format("select %s from %s %s", col, table, getWhere("where", "and", wheres));
 	}
 
-	private static String getBaseUpdate(ColumnInfo primaryKey, String tableName, String... wheres) throws IllegalAccessException {
-		StringBuilder baseSql = new StringBuilder(String.format("update %s  %s", tableName, getWhere("set", wheres)));
+	private static String getBaseUpdate(Object model, ColumnInfo primaryKey, String tableName, String... wheres) throws IllegalAccessException {
+		StringBuilder baseSql = new StringBuilder(String.format("update %s  %s", tableName, getWhere("set", ",", wheres)));
 		Field field = primaryKey.getField();
 		field.setAccessible(true);
-		Object obj = field.get(primaryKey.getFieldName());
+		Object obj = field.get(model);
 		baseSql.append(" where ").append(primaryKey.getColumnName()).append("=").append(obj);
 		return baseSql.toString();
 	}
 
-	public static String getWhere(String pre, String... wheres) {
+	public static String getWhere(String pre, String spl, String... wheres) {
 		StringBuilder baseSql = new StringBuilder();
 		if (Objects.nonNull(wheres) && wheres.length > 0) {
 			baseSql.append(pre).append(" ");
@@ -50,7 +60,7 @@ public class SqlUtils {
 				if (StringUtils.isEmpty(where)) continue;
 				baseSql.append(where);
 				if (sql.hasNext())
-					baseSql.append(" and ");
+					baseSql.append(" ").append(spl).append(" ");
 			} while (sql.hasNext());
 		}
 		String sql = baseSql.toString().trim();
@@ -64,12 +74,16 @@ public class SqlUtils {
 		List<String> wheres = new ArrayList<>(model.getSize());
 		Object obj;
 		Field field;
-		for (Map.Entry<String, ColumnInfo> entry : model.getFieldCache().entrySet()) {
+		for (Map.Entry<String, ColumnInfo> entry : model.getColumnCache().entrySet()) {
 			field = entry.getValue().getField();
 			field.setAccessible(true);
 			obj = field.get(model.getModel());
-			if (Objects.nonNull(obj))
-				wheres.add(entry.getKey() + "=" + obj);
+			if (Objects.nonNull(obj)) {
+				if (obj instanceof Number)
+					wheres.add(entry.getKey() + "=" + obj);
+				else
+					wheres.add(entry.getKey() + "='" + obj + "'");
+			}
 		}
 		return wheres.toArray(new String[0]);
 	}

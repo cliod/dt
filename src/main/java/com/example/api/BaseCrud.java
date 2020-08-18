@@ -22,7 +22,7 @@ public interface BaseCrud {
 
 	<T> int update(T t) throws IllegalAccessException;
 
-	<T> int insert(T t);
+	<T> int insert(T t) throws IllegalAccessException;
 
-	<T> int deleteById(Object id);
+	<T> int deleteById(Object id) throws IllegalAccessException;
 }

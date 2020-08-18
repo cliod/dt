@@ -70,13 +70,17 @@ public class BaseCrudImpl implements BaseCrud, Cloneable {
 	}
 
 	@Override
-	public <T> int insert(T t) {
-		return 0;
+	public <T> int insert(T t) throws IllegalAccessException {
+		ModelInfo<T> info = get(t);
+		String sql = SqlUtils.getBaseInsertSql(info);
+		return this.jdbcTemplate.update(sql);
 	}
 
 	@Override
-	public <T> int deleteById(Object id) {
-		return 0;
+	public <T> int deleteById(Object id) throws IllegalAccessException {
+		ModelInfo<T> info = get(id);
+		String sql = SqlUtils.getBaseDeleteSql(info);
+		return this.jdbcTemplate.update(sql);
 	}
 
 	@Override
