@@ -4,11 +4,9 @@ import com.example.bean.ModelInfo;
 import com.example.domain.Pageable;
 import com.example.utils.SqlUtils;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -32,13 +30,7 @@ public class BaseCrudImpl implements BaseCrud, Cloneable {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
-	@SneakyThrows
-	public BaseCrudImpl() {
-		//2.获得数据库的连接
-		String url = "jdbc:mysql://127.0.0.1:3306/gjjy?characterEncoding=UTF-8&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai";
-		String username = "root";
-		String password = "wobangkj2019";
-		DataSource dataSource = new SingleConnectionDataSource(url, username, password, true);
+	public BaseCrudImpl(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
@@ -72,8 +64,9 @@ public class BaseCrudImpl implements BaseCrud, Cloneable {
 	}
 
 	@Override
-	public <T> int update(T t) {
-		String sql = "";
+	public <T> int update(T t) throws IllegalAccessException {
+		ModelInfo<T> info = get(t);
+		String sql = SqlUtils.getBaseUpdateSql(info);
 		return this.jdbcTemplate.update(sql);
 	}
 
@@ -88,9 +81,15 @@ public class BaseCrudImpl implements BaseCrud, Cloneable {
 	}
 
 	@Override
-	protected BaseCrudImpl clone() {
-		BaseCrudImpl crud = new BaseCrudImpl();
-		BeanUtils.copyProperties(this, crud);
+	protected BaseCrudImpl clone() throws CloneNotSupportedException {
+		BaseCrudImpl crud = null;
+		try {
+			crud = (BaseCrudImpl) super.clone();
+		} finally {
+			if (Objects.isNull(crud)) {
+				crud = new BaseCrudImpl(this.jdbcTemplate.getDataSource());
+			}
+		}
 		return crud;
 	}
 }

@@ -13,14 +13,14 @@ import java.util.List;
 public interface BaseCrud {
 
 	static BaseCrud getInstance() {
-		return new BaseCrudImpl();
+		return null;
 	}
 
 	<T> List<T> selectAll(T t, Pageable pageable) throws IllegalAccessException;
 
 	<T> T selectOne(T t) throws IllegalAccessException;
 
-	<T> int update(T t);
+	<T> int update(T t) throws IllegalAccessException;
 
 	<T> int insert(T t);
 
