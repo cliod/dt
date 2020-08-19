@@ -2,6 +2,7 @@ package com.example.api;
 
 import com.example.domain.Pageable;
 
+import java.sql.SQLSyntaxErrorException;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public interface BaseCrud {
 
 	<T> int update(T t) throws IllegalAccessException;
 
-	<T> int insert(T t) throws IllegalAccessException;
+	<T> int insert(T t) throws ReflectiveOperationException, SQLSyntaxErrorException;
 
 	<T> int deleteById(Object id) throws IllegalAccessException;
 }

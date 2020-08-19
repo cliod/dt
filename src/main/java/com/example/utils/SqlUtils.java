@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.lang.reflect.Field;
+import java.sql.SQLSyntaxErrorException;
 import java.util.*;
 
 /**
@@ -26,14 +27,12 @@ public class SqlUtils {
 		return getBaseUpdate(model.getModel(), model.getPrimaryKeyInfo(), model.getTableName(), getWheres(model));
 	}
 
-	public static String getBaseInsertSql(ModelInfo<?> info) {
-		//TODO
-		return null;
+	public static String getBaseInsertSql(ModelInfo<?> model) throws SQLSyntaxErrorException, NoSuchFieldException, IllegalAccessException {
+		return getBaseInsert(model.getTableName(), model.getColumns(), getValues(model), model.getIsAutoGenerate() == 1);
 	}
 
-	public static String getBaseDeleteSql(ModelInfo<?> info) {
-		//TODO
-		return null;
+	public static String getBaseDeleteSql(ModelInfo<?> model) {
+		return getBaseDelete(model.getTableName());
 	}
 
 	public static String getBaseSelect(String col, String table, String... wheres) {
@@ -47,6 +46,49 @@ public class SqlUtils {
 		Object obj = field.get(model);
 		baseSql.append(" where ").append(primaryKey.getColumnName()).append("=").append(obj);
 		return baseSql.toString();
+	}
+
+	private static String getBaseInsert(String tableName, String columns, Object[] values, boolean isAutoGenerate) throws SQLSyntaxErrorException {
+		if (isAutoGenerate) {
+			if (columns.split(",").length - 1 != values.length) {
+				throw new SQLSyntaxErrorException("插入的values的的数量不正确");
+			}
+		} else {
+			if (columns.split(",").length != values.length) {
+				throw new SQLSyntaxErrorException("插入的values的的数量不正确");
+			}
+		}
+		StringBuilder baseSql = new StringBuilder(String.format("insert into %s(%s) values", tableName, columns));
+		baseSql.append("(");
+		for (Object value : values) {
+			if (value instanceof CharSequence)
+				baseSql.append("'").append(value).append("'");
+			else if (value instanceof Number)
+				baseSql.append(value);
+			else
+				baseSql.append("'").append(value).append("'");
+		}
+		baseSql.append(")");
+		return baseSql.toString();
+	}
+
+	private static String getBaseDelete(String tableName, String... wheres) {
+		return String.format("delete from %s", tableName) + getWhere("where", "and", wheres);
+	}
+
+	private static Object[] getValues(ModelInfo<?> model) throws NoSuchFieldException, IllegalAccessException {
+		Object obj = model.getModel();
+		Collection<String> fields = model.getFieldCache().keySet();
+		Object[] values = new Object[fields.size()];
+		int i = 0;
+		Field field;
+		for (String fieldName : fields) {
+			field = obj.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			values[i] = field.get(obj);
+			i++;
+		}
+		return values;
 	}
 
 	public static String getWhere(String pre, String spl, String... wheres) {

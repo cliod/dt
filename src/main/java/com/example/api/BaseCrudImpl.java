@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.sql.SQLSyntaxErrorException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ public class BaseCrudImpl implements BaseCrud, Cloneable {
 	}
 
 	@Override
-	public <T> int insert(T t) throws IllegalAccessException {
+	public <T> int insert(T t) throws ReflectiveOperationException, SQLSyntaxErrorException {
 		ModelInfo<T> info = get(t);
 		String sql = SqlUtils.getBaseInsertSql(info);
 		return this.jdbcTemplate.update(sql);
